@@ -8,17 +8,17 @@ const sequelize = new Sequelize(envConfig.connectionString as string, {
 try {
     sequelize.authenticate()
         .then(() => {
-            console.log("Authentication successfull.")
+            console.log("Authentication successfull.😊")
         })
         .catch(err => {
-            console.log("Error occured:", err)
+            console.log("Error occured 🙁🙁", err)
         })
 } catch (error) {
     console.log(error)
 }
 
 sequelize.sync({ force: false }).then(() => {
-    console.log("Changes added to database.")
+    console.log("Changes added to database. 👍👍")
 })
 
 export default sequelize
