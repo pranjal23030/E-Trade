@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import User from "../database/models/userModel";
 import bcrypt from 'bcrypt'
+import generateToken from "../services/generateToken";
 
 class UserController {
     static async register(req: Request, res: Response) {
@@ -57,8 +58,10 @@ class UserController {
                 })
             } else {
                 // If password correct and everything is valid, generate token (jwt)
+                const token = generateToken(user.id)
                 res.status(200).json({
-                    message: "Logged in successfully !! 😀 "
+                    message: "Logged in successfully !! 😀 ",
+                    token
                 })
             }
         }
