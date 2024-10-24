@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import User from "../database/models/userModel";
 import bcrypt from 'bcrypt'
 import generateToken from "../services/generateToken";
+import generateOtp from "../services/generateOtp";
+import sendMail from "../services/sendMail";
 
 class UserController {
     static async register(req: Request, res: Response) {
@@ -24,6 +26,12 @@ class UserController {
 
         res.status(201).json({
             message: "User registered successfully"
+        })
+
+        await sendMail({
+            to: email,
+            subject: "Registration Successfull!!!",
+            text: "You are successfully registered to E-TRADE !! "
         })
     }
 
@@ -65,6 +73,42 @@ class UserController {
                 })
             }
         }
+    }
+
+    static async handleForgotPassword(req: Request, res: Response) {
+        const { email } = req.body
+        if (!email) {
+            res.status(400).json({ message: "Please provide email address.." })
+            return
+        }
+
+        const [user] = await User.findAll({
+            where: {
+                email: email
+            }
+        })
+        if (!user) {
+            res.status(400).json({
+                email: "Email is not registered."
+            })
+            return
+        }
+
+        // If user is regestered, generate OTP and send in mail
+        const otp = generateOtp()
+        await sendMail({
+            to: email,
+            subject: "E-TRADE Password Change Request",
+            text: `This is your request to change password . The OTP is : ${otp}`
+        })
+
+        user.otp = otp.toString()
+        user.otpGeneratedTime = Date.now().toString()
+        await user.save()
+
+        res.status(200).json({
+            message: "Password Reset OTP sent !!"
+        })
     }
 }
 
