@@ -4,6 +4,9 @@ import bcrypt from 'bcrypt'
 import generateToken from "../services/generateToken";
 import generateOtp from "../services/generateOtp";
 import sendMail from "../services/sendMail";
+import findData from "../services/findData";
+import sendResponse from "../services/sendResponse";
+import checkOtpExpiration from "../services/checkOtpExpiration";
 
 class UserController {
     static async register(req: Request, res: Response) {
@@ -11,9 +14,7 @@ class UserController {
         const { username, email, password } = req.body
         // Server side validation
         if (!username || !email || !password) {
-            res.status(400).json({
-                message: "Please provide username, email, password"
-            })
+            sendResponse(res, 400, "Please provide username, email, password")
             return
         }
 
@@ -24,9 +25,7 @@ class UserController {
             password: bcrypt.hashSync(password, 12)
         })
 
-        res.status(201).json({
-            message: "User registered successfully"
-        })
+        sendResponse(res, 201, "User registered successfully")
 
         await sendMail({
             to: email,
@@ -40,9 +39,7 @@ class UserController {
         // Accept incoming data : email and password
         const { email, password } = req.body
         if (!email || !password) {
-            res.status(400).json({
-                message: "Please provide email, password. "
-            })
+            sendResponse(res, 400, "Please provide email, password. ")
             return
         }
 
@@ -54,23 +51,16 @@ class UserController {
         })
 
         if (!user) {
-            res.status(404).json({
-                message: "No user with that email address 😥 "
-            })
+            sendResponse(res, 404, "No user with that email address 😥 ")
         } else {
             // If email exists then check the password
             const isequal = bcrypt.compareSync(password, user.password)
             if (!isequal) {
-                res.status(400).json({
-                    message: "Invalid password 🙁"
-                })
+                sendResponse(res, 400, "Invalid password 🙁")
             } else {
                 // If password correct and everything is valid, generate token (jwt)
                 const token = generateToken(user.id)
-                res.status(200).json({
-                    message: "Logged in successfully !! 😀 ",
-                    token
-                })
+                sendResponse(res, 200, 'Logged in successfully !! 😀 ', token)
             }
         }
     }
@@ -78,19 +68,14 @@ class UserController {
     static async handleForgotPassword(req: Request, res: Response) {
         const { email } = req.body
         if (!email) {
-            res.status(400).json({ message: "Please provide email address.." })
+            sendResponse(res, 400, "Please provide email address ...")
             return
         }
 
-        const [user] = await User.findAll({
-            where: {
-                email: email
-            }
-        })
+        const user = await findData(User, email)
+
         if (!user) {
-            res.status(400).json({
-                email: "Email is not registered."
-            })
+            sendResponse(res, 400, 'Email is not registered. ')
             return
         }
 
@@ -106,9 +91,57 @@ class UserController {
         user.otpGeneratedTime = Date.now().toString()
         await user.save()
 
-        res.status(200).json({
-            message: "Password Reset OTP sent !!"
+        sendResponse(res, 200, "Password Reset OTP sent !!")
+    }
+
+    static async verifyOTP(req: Request, res: Response) {
+        const { otp, email } = req.body
+        if (!otp || !email) {
+            sendResponse(res, 404, "Please provide otp and email")
+            return
+        }
+
+        const user = await findData(User, email)
+        if (!user) {
+            sendResponse(res, 404, "No user with that email")
+            return
+        }
+
+        // OTP verification
+        const [data] = await User.findAll({
+            where: {
+                otp,
+                email
+            }
         })
+        if (!data) {
+            sendResponse(res, 404, "Invalid OTP")
+            return
+        }
+
+        // Check OTP expiration
+        const currentTime = Date.now()
+        const otpGeneratedTime = data.otpGeneratedTime
+        checkOtpExpiration(res, otpGeneratedTime, 120000)
+    }
+
+    static async resetPassword(req: Request, res: Response) {
+        const { newPassword, confirmPassword, email } = req.body
+        if (!newPassword || !confirmPassword || !email) {
+            sendResponse(res, 400, 'Please provide newPassword, confirmPassword, email, otp')
+            return
+        }
+        if (newPassword !== confirmPassword) {
+            sendResponse(res, 400, 'newPassword and confirmPassword must be same')
+            return
+        }
+        const user = await findData(User, email)
+        if (!user) {
+            sendResponse(res, 404, 'No email with that user')
+        }
+        user.password = bcrypt.hashSync(newPassword, 12)
+        await user.save()
+        sendResponse(res, 300, 'Password reset successfully !!')
     }
 }
 
