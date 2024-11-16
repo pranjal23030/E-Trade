@@ -17,7 +17,7 @@ try {
     console.log(error)
 }
 
-sequelize.sync({ force: false }).then(() => {
+sequelize.sync({ force: false, alter: false }).then(() => {
     console.log("Changes added to database. 👍👍")
 })
 
