@@ -14,10 +14,21 @@ class UserController {
         const { username, email, password } = req.body
         // Server side validation
         if (!username || !email || !password) {
-            sendResponse(res, 400, "Please provide username, email, password")
+            sendResponse(res, 400, "Please provide username, email, password.")
             return
         }
-
+        // Check whether that email alreadys exists or not
+        const [data] = await User.findAll({
+            where: {
+                email: email
+            }
+        })
+        if (data) {
+            res.status(400).json({
+                message: "Please try again later !!"
+            })
+            return
+        }
         // Add data to the users table
         await User.create({
             username,
@@ -25,11 +36,11 @@ class UserController {
             password: bcrypt.hashSync(password, 12)
         })
 
-        sendResponse(res, 201, "User registered successfully")
+        sendResponse(res, 201, "User registered successfully.")
 
         await sendMail({
             to: email,
-            subject: "Registration Successfull!!!",
+            subject: "Registration Successfull !!!",
             text: "You are successfully registered to E-TRADE !! "
         })
     }
@@ -60,7 +71,7 @@ class UserController {
             } else {
                 // If password correct and everything is valid, generate token (jwt)
                 const token = generateToken(user.id)
-                sendResponse(res, 200, 'Logged in successfully !! 😀 ', token)
+                sendResponse(res, 200, 'Logged in successfully  😀 ', token)
             }
         }
     }
@@ -68,7 +79,7 @@ class UserController {
     static async handleForgotPassword(req: Request, res: Response) {
         const { email } = req.body
         if (!email) {
-            sendResponse(res, 400, "Please provide email address ...")
+            sendResponse(res, 400, "Please provide email address .")
             return
         }
 
@@ -97,13 +108,13 @@ class UserController {
     static async verifyOTP(req: Request, res: Response) {
         const { otp, email } = req.body
         if (!otp || !email) {
-            sendResponse(res, 404, "Please provide otp and email")
+            sendResponse(res, 404, "Please provide otp and email.")
             return
         }
 
         const user = await findData(User, email)
         if (!user) {
-            sendResponse(res, 404, "No user with that email")
+            sendResponse(res, 404, "No user with that email.")
             return
         }
 
@@ -115,7 +126,7 @@ class UserController {
             }
         })
         if (!data) {
-            sendResponse(res, 404, "Invalid OTP")
+            sendResponse(res, 404, "Invalid OTP.")
             return
         }
 
@@ -128,16 +139,16 @@ class UserController {
     static async resetPassword(req: Request, res: Response) {
         const { newPassword, confirmPassword, email } = req.body
         if (!newPassword || !confirmPassword || !email) {
-            sendResponse(res, 400, 'Please provide newPassword, confirmPassword, email, otp')
+            sendResponse(res, 400, 'Please provide newPassword, confirmPassword, email, otp.')
             return
         }
         if (newPassword !== confirmPassword) {
-            sendResponse(res, 400, 'newPassword and confirmPassword must be same')
+            sendResponse(res, 400, 'newPassword and confirmPassword must be same.')
             return
         }
         const user = await findData(User, email)
         if (!user) {
-            sendResponse(res, 404, 'No email with that user')
+            sendResponse(res, 404, 'No email with that user.')
         }
         user.password = bcrypt.hashSync(newPassword, 12)
         await user.save()
