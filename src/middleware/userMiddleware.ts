@@ -50,10 +50,17 @@ class UserMiddleware {
             }
         })
     }
-    restrictTo(...roles: Role[]) {  // admin or customer only
+
+    accessTo(...roles: Role[]) {  // admin or customer array only
         return (req: IExtendedRequest, res: Response, next: NextFunction) => {
             let userRole = req.user?.role as Role
-            console.log(userRole,"Role")
+            if (!roles.includes(userRole)) {
+                res.status(403).json({
+                    message: "You aren't permitted to change category"
+                })
+                return
+            }
+            next()
         }
     }
 }
