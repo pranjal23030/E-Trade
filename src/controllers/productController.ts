@@ -14,8 +14,6 @@ import Category from "../database/models/categoryModel";
 class ProductController {
     async createProduct(req: Request, res: Response): Promise<void> {
         const { productName, productDescription, productPrice, productTotalStock, discount, categoryId } = req.body
-        console.log(req.file)
-        console.log(categoryId)
         const filename = req.file ? req.file.filename : "https://randomicle.com/static/media/parcel.9f551831.png"
         if (!productName || !productDescription || !productPrice || !productTotalStock || !categoryId) {
             res.status(400).json({
