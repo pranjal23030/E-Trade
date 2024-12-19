@@ -1,4 +1,4 @@
-import { Sequelize } from "sequelize-typescript";
+import { BelongsTo, Sequelize } from "sequelize-typescript";
 import { envConfig } from "../config/config";
 import Product from "./models/productModel";
 import Category from "./models/categoryModel";
@@ -6,6 +6,7 @@ import User from "./models/userModel";
 import Order from "./models/orderModel";
 import Payment from "./models/paymentModel";
 import OrderDetails from "./models/orderDetails";
+import Cart from "./models/cartModel";
 
 const sequelize = new Sequelize(envConfig.connectionString as string, {
     models: [__dirname + '/models']
@@ -54,5 +55,13 @@ Order.hasOne(OrderDetails, { foreignKey: 'orderId' })
 // productId in orderDetails
 OrderDetails.belongsTo(Product, { foreignKey: 'productId' })
 Product.hasMany(OrderDetails, { foreignKey: 'productId' })
+
+// Cart and user
+Cart.belongsTo(User, { foreignKey: "userId" })
+User.hasOne(Cart, { foreignKey: "userId" })
+
+// Cart and product
+Cart.belongsTo(Product, { foreignKey: "productId" })
+Product.hasMany(Cart, { foreignKey: "productId" })
 
 export default sequelize
