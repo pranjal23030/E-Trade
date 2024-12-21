@@ -139,7 +139,7 @@ class UserController {
     static async resetPassword(req: Request, res: Response) {
         const { newPassword, confirmPassword, email } = req.body
         if (!newPassword || !confirmPassword || !email) {
-            sendResponse(res, 400, 'Please provide newPassword, confirmPassword, email, otp.')
+            sendResponse(res, 400, 'Please provide newPassword, confirmPassword, and email.')
             return
         }
         if (newPassword !== confirmPassword) {

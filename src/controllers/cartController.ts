@@ -31,7 +31,6 @@ class CartController {
         // select * from cart where productId=? AND userId = ? 
 
         if (userKoCartMaItemAlreadyXa) {
-            // userKoCartMaItemAlreadyXa.quantity = userKoCartMaItemAlreadyXa.quantity + quantity
             userKoCartMaItemAlreadyXa.quantity += quantity
             await userKoCartMaItemAlreadyXa.save()
         } else {
@@ -92,6 +91,7 @@ class CartController {
             message: "Product from cart deleted successfully"
         })
     }
+
     async updateCartItemQuantity(req: AuthRequest, res: Response) {
         const userId = req.user?.id
         const { productId } = req.params
@@ -110,13 +110,13 @@ class CartController {
         })
         if (!cartItem) {
             res.status(404).json({
-                message: "Cart ma tyo ProductId ko product xainw!!!"
+                message: "No product in the cart with that productId"
             })
         } else {
             cartItem.quantity = quantity;
             await cartItem.save()
             res.status(200).json({
-                message: "Cart updated!!"
+                message: "Cart updated !!"
             })
         }
     }
