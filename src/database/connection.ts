@@ -45,8 +45,8 @@ Order.belongsTo(User, { foreignKey: 'userId' })
 // an order has payment
 // orderId in payments table
 
-Payment.belongsTo(Order, { foreignKey: 'orderId' })
-Order.hasOne(Payment, { foreignKey: 'orderId' })
+Payment.hasOne(Order, { foreignKey: 'paymentId' })
+Order.belongsTo(Payment, { foreignKey: 'paymentId' })
 
 // orderId in orderDetails
 OrderDetails.belongsTo(Order, { foreignKey: 'orderId' })
